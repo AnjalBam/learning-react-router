@@ -1,111 +1,128 @@
 import React from "react";
+import { BrowserRouter as Router, Link, Route } from "react-router-dom";
 import "./App.css";
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
 const users = [
   {
-    id: `1aa`,
-    name: `Param`,
+    name: "Param",
+    description:
+      "Guy who writes lorem ipsum all the time when he needs content placeholder.",
+    tabs: [
+      {
+        name: "personal",
+        content: {
+          firstname: "Param",
+          lastname: "Harrison",
+        },
+      },
+      {
+        name: "employer",
+        content: {
+          name: "Jobbatical",
+          city: "Tallinn, Estonia",
+        },
+      },
+    ],
   },
   {
-    id: `1ab`,
-    name: `Vennila`,
-  },
-  {
-    id: `1ac`,
-    name: `Afrin`,
-  },
-  {
-    id: `1ad`,
-    name: `Anjal`,
-  },
-  {
-    id: `1ae`,
-    name: `Amar`,
+    name: "Miguel",
+    description:
+      "the best guy doing deployment in his own clusters of kubernetes world",
+    tabs: [
+      {
+        name: "personal",
+        content: {
+          firstname: "Miguel",
+          lastname: "Medina",
+        },
+      },
+      {
+        name: "employer",
+        content: {
+          name: "Skype",
+          city: "Arizona, US",
+        },
+      },
+      {
+        name: "other",
+        content: {
+          country: "Mexico",
+          age: 30,
+        },
+      },
+    ],
   },
 ];
 
-function App() {
+const App = () => {
   return (
-    <section className="App">
-      <h1>React Routing Example</h1>
+    <div className="App">
       <Router>
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
-        <Link to="/users">Users</Link>
-        <Route path="/" exact component={IndexPage} />
-        <Route path="/about" exact component={AboutPage} />
-        <Route path="/users" exact component={UsersPage} />
-
-        <Route exact path="/user/:slug" component={UserPage} />
+        <h3>Top Level Routes:</h3>
+        <ul className="unlist">
+          {users.map((user, index) => {
+            return (
+              <li key={index}>
+                <Link to={`/user/${user.name}`}>{user.name}</Link>
+              </li>
+            );
+          })}
+        </ul>
+        <Route path="/user/:userName" component={UserPage} />
       </Router>
-    </section>
-  );
-}
-
-const IndexPage = () => {
-  return <h3>Home Page</h3>;
-};
-
-const AboutPage = () => {
-  return <h3>About Page</h3>;
-};
-
-const UsersPage = () => {
-  return (
-    <div>
-      <h3>Users Page</h3>
-      {users.map((user, index) => (
-        <h5 key={index}>
-          <Link to={`/user/${user.id}`}>{user.name}'s Page</Link>
-        </h5>
-      ))}
     </div>
   );
 };
 
-const UserPage = ({ match, location }) => {
+const UserPage = ({ match }) => {
   const {
-    params: { slug },
+    params: { userName },
   } = match;
-  return (
-    <>
-      {/* <p>
-        <strong>User Id:</strong>
-        {userId}
-      </p>
-      <p>
-        <strong>User Name:</strong>
-        {users[userId].name}
-      </p> */}
+  const user = users.find(({ name }) => name === userName);
 
-      <p>
-        <strong>Match Props: </strong>
-        <code>{JSON.stringify(match, null, 2)}</code>
-      </p>
-      <p>
-        <strong>Location Props: </strong>
-        <code>{JSON.stringify(location, null, 2)}</code>
-      </p>
-      {users.map((user) => {
-        if (user.id === slug) {
-          let userData = user;
+  return (
+    <div>
+      User Name: <strong>{user.name}</strong>
+      <p>{user.description}</p>
+      <p>Dynamic Nested Routes</p>
+      <ul className="unlist">
+        {user.tabs.map((tab, index) => {
           return (
-            <>
-              <p>
-                <strong>User Id:</strong>
-                {userData.id}
-              </p>
-              <p>
-                <strong>User Name:</strong>
-                {userData.name}
-              </p>
-            </>
+            <li key={index}>
+              <Link to={`${match.url}/tab/${tab.name}`}>{tab.name}</Link>
+            </li>
           );
-        }
-        return null;
-      })}
-    </>
+        })}
+      </ul>
+      <Route path={`${match.path}/tab/:tabName`} component={TabPage} />
+    </div>
+  );
+};
+
+const TabPage = ({ match }) => {
+  const {
+    params: { userName, tabName },
+  } = match;
+  console.log(match);
+  const tab = users
+    .find(({ name }) => name === userName)
+    .tabs.find(({ name }) => name === tabName);
+
+  return (
+    <div>
+      Tab Name: <strong>{tab.name}</strong>
+      <h6>Tab Content:</h6>
+      <ul>
+        {Object.keys(tab.content).map((key, index) => {
+          return (
+            <li key={index}>
+              <span>{key} :</span>
+              <strong>{tab.content[key]}</strong>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 };
 
